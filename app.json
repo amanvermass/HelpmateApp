@@ -1,12 +1,19 @@
 {
   "expo": {
-    "name": "Helpmate Partner",
+    "name": "Helpmate",
     "slug": "helpmate-partner",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    "android": {
+      "package": "com.amankvt.helpmate",
+      "adaptiveIcon": {
+        "backgroundColor": "#8D397E"
+      }
+    },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.amankvt.helpmate"
     },
     "web": {
       "bundler": "metro"
@@ -14,6 +21,12 @@
     "plugins": [
       "expo-font",
       "expo-asset"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "8f95bc99-f6c3-497f-b4eb-97b20e6fc727"
+      }
+    },
+    "owner": "amankvt"
   }
 }
