@@ -1,0 +1,34 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# expo
+/.expo/
+/dist/
+/web-build/
+
+# production / builds
+/build
+
+# testing
+/coverage
+
+# misc
+.DS_Store
+*.pem
+
+# debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env*.local
+.env
+
+# IDE / Editor config
+.idea/
+.vscode/
+*.swp
+*.swo

@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "Helpmate Partner",
+    "slug": "helpmate-partner",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-font",
+      "expo-asset"
+    ]
+  }
+}
