@@ -5,9 +5,7 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   Linking,
-  Platform,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { initialBookings, Booking } from '../data/mockData';
@@ -27,11 +25,13 @@ import {
   KeyRound,
 } from 'lucide-react-native';
 import { OtpAddonModal } from '../components/OtpAddonModal';
+import { JobDetailsModal } from '../components/JobDetailsModal';
 
 export const DashboardScreen: React.FC = () => {
   const { partnerUser, setActiveTab } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>(initialBookings);
   const [selectedBookingForOtp, setSelectedBookingForOtp] = useState<Booking | null>(null);
+  const [selectedJobForDetails, setSelectedJobForDetails] = useState<Booking | null>(null);
 
   const pendingBookings = bookings.filter((b) => b.status === 'Pending' || b.status === 'Assigned' || b.status === 'In Progress');
   const pendingCount = pendingBookings.length;
@@ -51,7 +51,7 @@ export const DashboardScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         {/* Welcome Banner Card */}
         <View style={styles.bannerCard}>
@@ -98,21 +98,21 @@ export const DashboardScreen: React.FC = () => {
           <View style={styles.kpiCard}>
             <Text style={styles.kpiLabel}>Authorized Services</Text>
             <Text style={styles.kpiValue}>4 Skill Sets</Text>
-            <Text style={styles.kpiSub}>HVAC, Gas Charge, Repair</Text>
+            <Text style={styles.kpiSub}>AC & Smart Electrician</Text>
           </View>
 
           {/* KPI 4 */}
           <View style={styles.kpiCard}>
             <Text style={styles.kpiLabel}>Coverage Zone</Text>
-            <Text style={[styles.kpiValue, { color: colors.purpleText }]}>Varanasi South</Text>
-            <Text style={styles.kpiSub}>Sigra, Lanka, Bhelupur</Text>
+            <Text style={styles.kpiValue}>Varanasi South</Text>
+            <Text style={styles.kpiSub}>3 Pincodes Active</Text>
           </View>
         </View>
 
-        {/* Assigned Jobs Header & Link */}
+        {/* Active Jobs Header */}
         <View style={styles.sectionRow}>
           <Text style={styles.sectionHeaderTitle}>Assigned Jobs ({pendingCount})</Text>
-          <TouchableOpacity onPress={() => setActiveTab('bookings')}>
+          <TouchableOpacity onPress={() => setActiveTab('bookings')} activeOpacity={0.7}>
             <Text style={styles.viewAllText}>View All Jobs →</Text>
           </TouchableOpacity>
         </View>
@@ -126,9 +126,14 @@ export const DashboardScreen: React.FC = () => {
           </View>
         ) : (
           pendingBookings.map((job) => (
-            <View key={job.id} style={styles.jobCard}>
+            <TouchableOpacity
+              key={job.id}
+              style={styles.jobCard}
+              onPress={() => setSelectedJobForDetails(job)}
+              activeOpacity={0.9}
+            >
               <View style={styles.jobCardHeader}>
-                <Text style={styles.jobIdText}>{job.id}</Text>
+                <Text style={styles.jobIdText}>#{job.id}</Text>
                 <View
                   style={[
                     styles.statusBadge,
@@ -177,12 +182,21 @@ export const DashboardScreen: React.FC = () => {
                 </View>
 
                 <View style={styles.jobActionsRow}>
+                  {/* Job Details Button */}
+                  <TouchableOpacity
+                    style={styles.detailsIconBtn}
+                    onPress={() => setSelectedJobForDetails(job)}
+                  >
+                    <Eye size={14} color={colors.brand500} />
+                    <Text style={styles.detailsBtnText}>Details</Text>
+                  </TouchableOpacity>
+
                   {/* Call Customer */}
                   <TouchableOpacity
                     style={styles.actionIconBtn}
                     onPress={() => handleCallCustomer(job.customerPhone)}
                   >
-                    <Phone size={16} color={colors.brand500} />
+                    <Phone size={14} color={colors.brand500} />
                   </TouchableOpacity>
 
                   {/* Open Map */}
@@ -190,7 +204,7 @@ export const DashboardScreen: React.FC = () => {
                     style={styles.actionIconBtn}
                     onPress={() => handleOpenMap(job.address, job.locality)}
                   >
-                    <Navigation size={16} color={colors.rose} />
+                    <Navigation size={14} color={colors.rose} />
                   </TouchableOpacity>
 
                   {/* Verify OTP & Finish */}
@@ -199,13 +213,21 @@ export const DashboardScreen: React.FC = () => {
                     onPress={() => setSelectedBookingForOtp(job)}
                   >
                     <KeyRound size={14} color={colors.card} />
-                    <Text style={styles.otpVerifyBtnText}>Verify OTP</Text>
+                    <Text style={styles.otpVerifyBtnText}>OTP</Text>
                   </TouchableOpacity>
                 </View>
               </View>
-            </View>
+            </TouchableOpacity>
           ))
         )}
+
+        {/* Job Details Modal */}
+        <JobDetailsModal
+          visible={!!selectedJobForDetails}
+          job={selectedJobForDetails}
+          onClose={() => setSelectedJobForDetails(null)}
+          onOpenOtpModal={(jobToOtp) => setSelectedBookingForOtp(jobToOtp)}
+        />
 
         {/* OTP & Addons Modal */}
         <OtpAddonModal
@@ -215,7 +237,7 @@ export const DashboardScreen: React.FC = () => {
           onCompleteBooking={handleBookingCompleted}
         />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -226,7 +248,7 @@ const styles = StyleSheet.create({
   },
   container: {
     paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingVertical: 12,
   },
   bannerCard: {
     backgroundColor: colors.card,
@@ -234,7 +256,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderWidth: 1,
     borderColor: colors.border,
-    marginBottom: 20,
+    marginBottom: 16,
     ...shadow.sm,
   },
   bannerHeader: {
@@ -293,14 +315,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '800',
     color: colors.textPrimary,
-    marginBottom: 12,
+    marginBottom: 10,
   },
   sectionRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 10,
-    marginBottom: 12,
+    marginTop: 6,
+    marginBottom: 10,
   },
   viewAllText: {
     fontSize: 13,
@@ -360,7 +382,7 @@ const styles = StyleSheet.create({
   },
   jobCard: {
     backgroundColor: colors.card,
-    borderRadius: 18,
+    borderRadius: 20,
     padding: 16,
     borderWidth: 1,
     borderColor: colors.border,
@@ -371,18 +393,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   jobIdText: {
     fontSize: 12,
     fontWeight: '800',
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-    color: colors.brand500,
+    color: colors.textMuted,
   },
   statusBadge: {
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 10,
+    borderRadius: 8,
   },
   statusPending: {
     backgroundColor: colors.amberLight,
@@ -401,42 +422,42 @@ const styles = StyleSheet.create({
     color: colors.emeraldText,
   },
   jobServiceTitle: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '800',
     color: colors.textPrimary,
+    marginBottom: 2,
   },
   jobCustomerName: {
     fontSize: 13,
     fontWeight: '600',
     color: colors.textSecondary,
-    marginBottom: 8,
+    marginBottom: 10,
   },
   jobMetaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 4,
+    marginBottom: 6,
   },
   jobMetaText: {
     fontSize: 12,
     color: colors.textSecondary,
-    flex: 1,
   },
   jobFooter: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    flexWrap: 'wrap',
-    gap: 8,
     marginTop: 12,
     paddingTop: 10,
     borderTopWidth: 1,
     borderTopColor: colors.divider,
+    flexWrap: 'wrap',
+    gap: 6,
   },
   shareLabel: {
     fontSize: 10,
-    fontWeight: '600',
-    color: colors.textMuted,
+    fontWeight: '700',
+    color: colors.emeraldText,
   },
   shareValue: {
     fontSize: 16,
@@ -446,8 +467,25 @@ const styles = StyleSheet.create({
   jobActionsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    flexWrap: 'wrap',
     gap: 6,
+    flexWrap: 'wrap',
+  },
+  detailsIconBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    width: 72,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: colors.brand50,
+    borderWidth: 1,
+    borderColor: colors.brand200,
+    justifyContent: 'center',
+  },
+  detailsBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.brand500,
   },
   actionIconBtn: {
     width: 36,
@@ -460,17 +498,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   otpVerifyBtn: {
-    backgroundColor: colors.brand500,
-    paddingHorizontal: 12,
-    paddingVertical: 9,
-    borderRadius: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
+    backgroundColor: colors.brand500,
+    paddingHorizontal: 10,
+    height: 36,
+    borderRadius: 10,
   },
   otpVerifyBtnText: {
     color: colors.card,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '800',
   },
 });

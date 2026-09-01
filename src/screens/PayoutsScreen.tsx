@@ -4,19 +4,19 @@ import {
   Text,
   ScrollView,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
-  Platform,
 } from 'react-native';
 import { initialPayouts, PayoutRecord } from '../data/mockData';
 import { colors, shadow } from '../styles/theme';
-import { Wallet, CheckCircle2, CreditCard, ArrowUpRight, DollarSign, Building2 } from 'lucide-react-native';
+import { Wallet, CheckCircle2, ArrowUpRight, Building2, Eye, ChevronRight } from 'lucide-react-native';
+import { PayoutDetailsModal } from '../components/PayoutDetailsModal';
 
 export const PayoutsScreen: React.FC = () => {
   const [payouts] = useState<PayoutRecord[]>(initialPayouts);
+  const [selectedPayout, setSelectedPayout] = useState<PayoutRecord | null>(null);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <View style={styles.headerBox}>
         <Text style={styles.pageTitle}>Wallet & Payouts</Text>
         <Text style={styles.pageSubtitle}>Weekly bank settlements & lifetime earnings history</Text>
@@ -52,7 +52,7 @@ export const PayoutsScreen: React.FC = () => {
           {/* Registered Bank */}
           <View style={styles.statCard}>
             <View style={styles.bankHeaderRow}>
-              <Building2 size={16} color={colors.primary} />
+              <Building2 size={16} color={colors.brand500} />
               <Text style={styles.statLabel}>Registered Bank</Text>
             </View>
             <Text style={styles.bankNameText}>HDFC Bank Ltd</Text>
@@ -62,10 +62,15 @@ export const PayoutsScreen: React.FC = () => {
         </View>
 
         {/* Settlement Records List Header */}
-        <Text style={styles.sectionTitle}>Settlement History</Text>
+        <Text style={styles.sectionTitle}>Settlement History (Tap for Details)</Text>
 
         {payouts.map((record) => (
-          <View key={record.id} style={styles.payoutCard}>
+          <TouchableOpacity
+            key={record.id}
+            style={styles.payoutCard}
+            onPress={() => setSelectedPayout(record)}
+            activeOpacity={0.8}
+          >
             <View style={styles.payoutHeader}>
               <Text style={styles.payoutIdText}>{record.id}</Text>
               <View style={styles.statusSettledTag}>
@@ -96,11 +101,25 @@ export const PayoutsScreen: React.FC = () => {
               </View>
             </View>
 
-            <Text style={styles.bankAccountFoot}>Credited to: {record.bankAccount}</Text>
-          </View>
+            <View style={styles.payoutFooterRow}>
+              <Text style={styles.bankAccountFoot}>Credited to: {record.bankAccount}</Text>
+              <View style={styles.viewDetailsLink}>
+                <Eye size={12} color={colors.brand500} />
+                <Text style={styles.viewDetailsText}>View Statement</Text>
+                <ChevronRight size={14} color={colors.brand500} />
+              </View>
+            </View>
+          </TouchableOpacity>
         ))}
+
+        {/* Payout Details Modal */}
+        <PayoutDetailsModal
+          visible={!!selectedPayout}
+          payout={selectedPayout}
+          onClose={() => setSelectedPayout(null)}
+        />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -112,8 +131,8 @@ const styles = StyleSheet.create({
   headerBox: {
     backgroundColor: colors.card,
     paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 14,
+    paddingTop: 12,
+    paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
@@ -129,10 +148,10 @@ const styles = StyleSheet.create({
   },
   container: {
     paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingVertical: 14,
   },
   walletMainCard: {
-    backgroundColor: '#059669', // Vibrant emerald
+    backgroundColor: colors.brand500,
     borderRadius: 22,
     padding: 20,
     marginBottom: 16,
@@ -142,13 +161,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 14,
+    marginBottom: 16,
   },
   walletIconCircle: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -159,33 +178,34 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 20,
+    borderRadius: 12,
   },
   settlementPillText: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
     color: colors.emeraldText,
   },
   walletLabel: {
-    fontSize: 13,
+    fontSize: 12,
+    color: colors.brand200,
     fontWeight: '600',
-    color: '#ecfdf5',
   },
   walletBalanceText: {
-    fontSize: 34,
+    fontSize: 32,
     fontWeight: '900',
     color: colors.card,
-    marginVertical: 4,
+    marginVertical: 2,
   },
   nextPayoutDateText: {
     fontSize: 11,
+    color: colors.brand50,
     fontWeight: '600',
-    color: '#ecfdf5',
+    marginTop: 4,
   },
   statsGrid: {
     flexDirection: 'row',
-    gap: 12,
-    marginBottom: 20,
+    gap: 10,
+    marginBottom: 16,
   },
   statCard: {
     flex: 1,
@@ -205,32 +225,33 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '900',
     color: colors.textPrimary,
-    marginVertical: 4,
+    marginTop: 4,
   },
   statSub: {
     fontSize: 10,
-    fontWeight: '700',
     color: colors.textMuted,
+    fontWeight: '600',
+    marginTop: 2,
   },
   bankHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginBottom: 4,
   },
   bankNameText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '800',
     color: colors.textPrimary,
+    marginTop: 4,
   },
   bankAcText: {
     fontSize: 11,
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    fontWeight: '700',
     color: colors.textSecondary,
-    marginTop: 2,
+    marginTop: 1,
   },
   bankIfscText: {
-    fontSize: 10,
+    fontSize: 9,
     color: colors.textMuted,
     marginTop: 1,
   },
@@ -238,11 +259,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '800',
     color: colors.textPrimary,
-    marginBottom: 12,
+    marginBottom: 10,
   },
   payoutCard: {
     backgroundColor: colors.card,
-    borderRadius: 18,
+    borderRadius: 20,
     padding: 16,
     borderWidth: 1,
     borderColor: colors.border,
@@ -256,10 +277,9 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   payoutIdText: {
-    fontSize: 13,
-    fontWeight: '800',
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-    color: colors.primary,
+    fontSize: 14,
+    fontWeight: '900',
+    color: colors.textPrimary,
   },
   statusSettledTag: {
     flexDirection: 'row',
@@ -276,38 +296,39 @@ const styles = StyleSheet.create({
     color: colors.emeraldText,
   },
   cycleText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: colors.textPrimary,
+    fontSize: 12,
+    color: colors.textSecondary,
+    fontWeight: '600',
   },
   jobsCountText: {
     fontSize: 11,
-    color: colors.textSecondary,
+    color: colors.textMuted,
     marginBottom: 10,
   },
   breakdownBox: {
     backgroundColor: colors.inputBg,
+    borderRadius: 14,
     padding: 12,
-    borderRadius: 12,
     borderWidth: 1,
     borderColor: colors.border,
   },
   breakdownRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 3,
+    marginBottom: 4,
   },
   breakdownLabel: {
     fontSize: 11,
     color: colors.textSecondary,
   },
   breakdownValue: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
     color: colors.textPrimary,
   },
   platformCutText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
     color: colors.rose,
   },
@@ -316,11 +337,12 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border,
     paddingTop: 6,
     marginTop: 4,
+    marginBottom: 0,
   },
   netLabel: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '800',
-    color: colors.textPrimary,
+    color: colors.emeraldText,
   },
   netValueRow: {
     flexDirection: 'row',
@@ -328,14 +350,32 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   netValue: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '900',
     color: colors.emeraldText,
   },
+  payoutFooterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 10,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: colors.divider,
+  },
   bankAccountFoot: {
-    fontSize: 10,
+    fontSize: 11,
     color: colors.textMuted,
-    marginTop: 8,
-    fontStyle: 'italic',
+    fontWeight: '600',
+  },
+  viewDetailsLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+  },
+  viewDetailsText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: colors.brand500,
   },
 });

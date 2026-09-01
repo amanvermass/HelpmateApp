@@ -36,7 +36,7 @@ export const ServicesScreen: React.FC = () => {
   });
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       {/* Header & Search */}
       <View style={styles.headerBox}>
         <Text style={styles.pageTitle}>Authorized Services & Rate Card</Text>
@@ -164,7 +164,7 @@ export const ServicesScreen: React.FC = () => {
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 

@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, SafeAreaView, Platform } from 'react-native';
+import { View, Image, TouchableOpacity, StyleSheet, SafeAreaView, Platform } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { colors, shadow } from '../styles/theme';
-import { ShieldCheck, Bell } from 'lucide-react-native';
+import { Bell } from 'lucide-react-native';
 
 export const NavigationHeader: React.FC = () => {
   const { partnerUser, setActiveTab, unreadCount } = useAuth();
@@ -10,33 +10,20 @@ export const NavigationHeader: React.FC = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.headerContainer}>
-        {/* HelpMate Logo & User Info */}
+        {/* Top Left: Official HelpMate Brand Logo */}
         <TouchableOpacity
-          style={styles.profileSection}
-          onPress={() => setActiveTab('profile')}
+          onPress={() => setActiveTab('dashboard')}
           activeOpacity={0.8}
+          style={styles.logoTouch}
         >
           <Image
-            source={{ uri: partnerUser?.avatar || 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=300&auto=format&fit=crop&q=80' }}
-            style={styles.avatar}
+            source={{ uri: 'https://helpmate-theta.vercel.app/logo.png' }}
+            style={styles.logoImage}
+            resizeMode="contain"
           />
-          <View style={styles.nameContainer}>
-            <View style={styles.titleRow}>
-              <Text style={styles.partnerName} numberOfLines={1}>
-                {partnerUser?.name || 'Ramesh Yadav'}
-              </Text>
-              <View style={styles.verifiedBadge}>
-                <ShieldCheck size={12} color={colors.emeraldText} />
-                <Text style={styles.verifiedText}>Verified</Text>
-              </View>
-            </View>
-            <Text style={styles.partnerRole} numberOfLines={1}>
-              {partnerUser?.category || 'AC Servicing Expert'} • {partnerUser?.rating || 4.9} ★
-            </Text>
-          </View>
         </TouchableOpacity>
 
-        {/* Header Right Actions - Bell Button to Notifications */}
+        {/* Top Right: Notification Bell & Profile Avatar */}
         <View style={styles.actionsContainer}>
           <TouchableOpacity
             style={styles.iconButton}
@@ -46,9 +33,21 @@ export const NavigationHeader: React.FC = () => {
             <Bell size={18} color={colors.brand500} />
             {unreadCount > 0 && (
               <View style={styles.badgeCountBox}>
-                <Text style={styles.badgeCountText}>{unreadCount}</Text>
+                <View style={styles.badgeDot} />
               </View>
             )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => setActiveTab('profile')}
+            activeOpacity={0.8}
+            style={styles.avatarButton}
+          >
+            <Image
+              source={{ uri: partnerUser?.avatar || 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=300&auto=format&fit=crop&q=80' }}
+              style={styles.avatar}
+            />
+            <View style={styles.statusDot} />
           </TouchableOpacity>
         </View>
       </View>
@@ -61,71 +60,33 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
-    paddingTop: Platform.OS === 'android' ? 25 : 0,
+    paddingTop: Platform.OS === 'android' ? 6 : 0,
   },
   headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 8,
     backgroundColor: colors.card,
+    height: 48,
   },
-  profileSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
+  logoTouch: {
+    justifyContent: 'center',
   },
-  avatar: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    borderWidth: 2,
-    borderColor: colors.brand200,
-  },
-  nameContainer: {
-    marginLeft: 10,
-    flex: 1,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  partnerName: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: colors.textPrimary,
-  },
-  verifiedBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.emeraldLight,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 6,
-    gap: 3,
-  },
-  verifiedText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: colors.emeraldText,
-  },
-  partnerRole: {
-    fontSize: 11,
-    color: colors.textSecondary,
-    fontWeight: '500',
-    marginTop: 2,
+  logoImage: {
+    height: 32,
+    width: 120,
   },
   actionsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
   },
   iconButton: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: colors.brand50,
     alignItems: 'center',
     justifyContent: 'center',
@@ -135,19 +96,34 @@ const styles = StyleSheet.create({
   },
   badgeCountBox: {
     position: 'absolute',
-    top: -3,
-    right: -3,
-    minWidth: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: colors.brand500,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 4,
+    top: 6,
+    right: 6,
   },
-  badgeCountText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: colors.card,
+  badgeDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.brand500,
+  },
+  avatarButton: {
+    position: 'relative',
+  },
+  avatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1.5,
+    borderColor: colors.brand200,
+  },
+  statusDot: {
+    width: 9,
+    height: 9,
+    borderRadius: 4.5,
+    backgroundColor: colors.emeraldText,
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    borderWidth: 1.5,
+    borderColor: colors.card,
   },
 });

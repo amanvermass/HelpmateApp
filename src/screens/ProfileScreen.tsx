@@ -35,7 +35,7 @@ export const ProfileScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <View style={styles.headerBox}>
         <Text style={styles.pageTitle}>Profile & Verification</Text>
         <Text style={styles.pageSubtitle}>Verified credentials, bank account & document vault</Text>
@@ -196,7 +196,7 @@ export const ProfileScreen: React.FC = () => {
           onClose={() => setSelectedDoc(null)}
         />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
