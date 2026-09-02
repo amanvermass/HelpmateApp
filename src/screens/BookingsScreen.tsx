@@ -22,11 +22,13 @@ import {
 import { OtpAddonModal } from '../components/OtpAddonModal';
 import { JobDetailsModal } from '../components/JobDetailsModal';
 
+import { useAuth } from '../context/AuthContext';
+
 export const BookingsScreen: React.FC = () => {
+  const { setSelectedJobForDetails } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>(initialBookings);
   const [filterTab, setFilterTab] = useState<'All' | 'Pending' | 'Assigned' | 'Completed'>('All');
   const [selectedBookingForOtp, setSelectedBookingForOtp] = useState<Booking | null>(null);
-  const [selectedJobForDetails, setSelectedJobForDetails] = useState<Booking | null>(null);
 
   const filteredBookings = bookings.filter((b) => {
     if (filterTab === 'All') return true;
@@ -183,14 +185,6 @@ export const BookingsScreen: React.FC = () => {
           ))
         )}
       </ScrollView>
-
-      {/* Job Details Modal */}
-      <JobDetailsModal
-        visible={!!selectedJobForDetails}
-        job={selectedJobForDetails}
-        onClose={() => setSelectedJobForDetails(null)}
-        onOpenOtpModal={(jobToOtp) => setSelectedBookingForOtp(jobToOtp)}
-      />
 
       {/* OTP Addon Modal */}
       <OtpAddonModal

@@ -28,10 +28,9 @@ import { OtpAddonModal } from '../components/OtpAddonModal';
 import { JobDetailsModal } from '../components/JobDetailsModal';
 
 export const DashboardScreen: React.FC = () => {
-  const { partnerUser, setActiveTab } = useAuth();
+  const { partnerUser, setActiveTab, setSelectedJobForDetails } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>(initialBookings);
   const [selectedBookingForOtp, setSelectedBookingForOtp] = useState<Booking | null>(null);
-  const [selectedJobForDetails, setSelectedJobForDetails] = useState<Booking | null>(null);
 
   const pendingBookings = bookings.filter((b) => b.status === 'Pending' || b.status === 'Assigned' || b.status === 'In Progress');
   const pendingCount = pendingBookings.length;
@@ -220,14 +219,6 @@ export const DashboardScreen: React.FC = () => {
             </TouchableOpacity>
           ))
         )}
-
-        {/* Job Details Modal */}
-        <JobDetailsModal
-          visible={!!selectedJobForDetails}
-          job={selectedJobForDetails}
-          onClose={() => setSelectedJobForDetails(null)}
-          onOpenOtpModal={(jobToOtp) => setSelectedBookingForOtp(jobToOtp)}
-        />
 
         {/* OTP & Addons Modal */}
         <OtpAddonModal

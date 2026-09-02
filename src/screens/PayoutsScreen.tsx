@@ -11,9 +11,11 @@ import { colors, shadow } from '../styles/theme';
 import { Wallet, CheckCircle2, ArrowUpRight, Building2, Eye, ChevronRight } from 'lucide-react-native';
 import { PayoutDetailsModal } from '../components/PayoutDetailsModal';
 
+import { useAuth } from '../context/AuthContext';
+
 export const PayoutsScreen: React.FC = () => {
+  const { setSelectedPayoutForDetails } = useAuth();
   const [payouts] = useState<PayoutRecord[]>(initialPayouts);
-  const [selectedPayout, setSelectedPayout] = useState<PayoutRecord | null>(null);
 
   return (
     <View style={styles.safeArea}>
@@ -68,7 +70,7 @@ export const PayoutsScreen: React.FC = () => {
           <TouchableOpacity
             key={record.id}
             style={styles.payoutCard}
-            onPress={() => setSelectedPayout(record)}
+            onPress={() => setSelectedPayoutForDetails(record)}
             activeOpacity={0.8}
           >
             <View style={styles.payoutHeader}>
@@ -111,13 +113,6 @@ export const PayoutsScreen: React.FC = () => {
             </View>
           </TouchableOpacity>
         ))}
-
-        {/* Payout Details Modal */}
-        <PayoutDetailsModal
-          visible={!!selectedPayout}
-          payout={selectedPayout}
-          onClose={() => setSelectedPayout(null)}
-        />
       </ScrollView>
     </View>
   );

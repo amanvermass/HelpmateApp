@@ -10,7 +10,7 @@ export const NavigationHeader: React.FC = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.headerContainer}>
-        {/* Top Left: Official HelpMate Brand Logo */}
+        {/* Top Left: Official HelpMate Brand Logo (Negative margin offsets image whitespace for perfect alignment) */}
         <TouchableOpacity
           onPress={() => setActiveTab('dashboard')}
           activeOpacity={0.8}
@@ -60,28 +60,32 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
-    paddingTop: Platform.OS === 'android' ? 6 : 0,
+    paddingTop: Platform.OS === 'android' ? 4 : 0,
   },
   headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 6,
     backgroundColor: colors.card,
-    height: 48,
+    height: 52,
   },
   logoTouch: {
+    height: 36,
     justifyContent: 'center',
+    alignItems: 'flex-start',
+    marginLeft: -24,
   },
   logoImage: {
-    height: 32,
+    height: 34,
     width: 120,
   },
   actionsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+    height: 36,
   },
   iconButton: {
     width: 36,
@@ -107,6 +111,8 @@ const styles = StyleSheet.create({
   },
   avatarButton: {
     position: 'relative',
+    height: 36,
+    justifyContent: 'center',
   },
   avatar: {
     width: 36,

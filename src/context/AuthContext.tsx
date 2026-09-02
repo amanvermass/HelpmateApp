@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
-import { partnerProfileData, initialNotifications, AppNotification } from '../data/mockData';
+import { partnerProfileData, initialNotifications, AppNotification, Booking, PayoutRecord } from '../data/mockData';
 
 export type LoginMode = 'partner' | 'super_admin' | 'office_admin';
 
@@ -19,6 +19,10 @@ interface AuthContextType {
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
   clearNotifications: () => void;
+  selectedJobForDetails: Booking | null;
+  setSelectedJobForDetails: (job: Booking | null) => void;
+  selectedPayoutForDetails: PayoutRecord | null;
+  setSelectedPayoutForDetails: (payout: PayoutRecord | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -29,6 +33,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [partnerUser, setPartnerUser] = useState<typeof partnerProfileData | null>(partnerProfileData);
   const [activeTab, setActiveTab] = useState<ActiveTabType>('dashboard');
   const [notifications, setNotifications] = useState<AppNotification[]>(initialNotifications);
+  const [selectedJobForDetails, setSelectedJobForDetails] = useState<Booking | null>(null);
+  const [selectedPayoutForDetails, setSelectedPayoutForDetails] = useState<PayoutRecord | null>(null);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -63,6 +69,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setPartnerUser(null);
   };
 
+  const handleSetActiveTab = (tab: ActiveTabType) => {
+    // Reset full screen details when changing main tabs
+    setSelectedJobForDetails(null);
+    setSelectedPayoutForDetails(null);
+    setActiveTab(tab);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -73,12 +86,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         login,
         logout,
         activeTab,
-        setActiveTab,
+        setActiveTab: handleSetActiveTab,
         notifications,
         unreadCount,
         markAsRead,
         markAllAsRead,
         clearNotifications,
+        selectedJobForDetails,
+        setSelectedJobForDetails,
+        selectedPayoutForDetails,
+        setSelectedPayoutForDetails,
       }}
     >
       {children}
