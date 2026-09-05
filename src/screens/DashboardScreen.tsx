@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,34 +6,67 @@ import {
   TouchableOpacity,
   StyleSheet,
   Linking,
+  RefreshControl,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { initialBookings, Booking } from '../data/mockData';
 import { colors, shadow } from '../styles/theme';
 import {
-  TrendingUp,
   Clock,
-  Wrench,
   MapPin,
   Phone,
   CheckCircle2,
-  ChevronRight,
-  ShieldCheck,
   UserCheck,
   Navigation,
   Eye,
   KeyRound,
 } from 'lucide-react-native';
 import { OtpAddonModal } from '../components/OtpAddonModal';
-import { JobDetailsModal } from '../components/JobDetailsModal';
+import { ShimmerKpiGrid, ShimmerJobCard, ShimmerBox } from '../components/ShimmerCard';
+import { AnimatedDataView } from '../components/AnimatedDataView';
+import { AssignedJobAcceptCard } from '../components/AssignedJobAcceptCard';
 
 export const DashboardScreen: React.FC = () => {
   const { partnerUser, setActiveTab, setSelectedJobForDetails } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>(initialBookings);
   const [selectedBookingForOtp, setSelectedBookingForOtp] = useState<Booking | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
 
-  const pendingBookings = bookings.filter((b) => b.status === 'Pending' || b.status === 'Assigned' || b.status === 'In Progress');
-  const pendingCount = pendingBookings.length;
+  useEffect(() => {
+    // Smooth data loading transition effect
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 550);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setIsLoading(true);
+    setTimeout(() => {
+      setBookings(initialBookings);
+      setIsLoading(false);
+      setRefreshing(false);
+    }, 600);
+  }, []);
+
+  const activeBookings = bookings.filter(
+    (b) => b.status === 'Pending' || b.status === 'Assigned' || b.status === 'In Progress'
+  );
+  const pendingCount = activeBookings.length;
+
+  const handleAcceptJob = (acceptedJob: Booking) => {
+    setBookings((prev) =>
+      prev.map((b) => (b.id === acceptedJob.id ? { ...b, status: 'In Progress' as const } : b))
+    );
+  };
+
+  const handleDeclineJob = (declinedJob: Booking) => {
+    setBookings((prev) =>
+      prev.map((b) => (b.id === declinedJob.id ? { ...b, status: 'Declined' as const } : b))
+    );
+  };
 
   const handleOpenMap = (address: string, locality: string) => {
     const query = encodeURIComponent(`${locality} ${address} Varanasi`);
@@ -51,7 +84,18 @@ export const DashboardScreen: React.FC = () => {
 
   return (
     <View style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[colors.brand500]}
+            tintColor={colors.brand500}
+          />
+        }
+      >
         {/* Welcome Banner Card */}
         <View style={styles.bannerCard}>
           <View style={styles.bannerHeader}>
@@ -78,146 +122,171 @@ export const DashboardScreen: React.FC = () => {
 
         {/* KPI Metrics Grid */}
         <Text style={styles.sectionHeaderTitle}>Performance Overview</Text>
-        <View style={styles.kpiGrid}>
-          {/* KPI 1 */}
-          <View style={[styles.kpiCard, { borderColor: colors.emeraldBorder }]}>
-            <Text style={styles.kpiLabel}>This Month Earnings</Text>
-            <Text style={[styles.kpiValue, { color: colors.emeraldText }]}>₹24,850</Text>
-            <Text style={styles.kpiSub}>75% Net Share Paid Weekly</Text>
-          </View>
 
-          {/* KPI 2 */}
-          <View style={[styles.kpiCard, { borderColor: colors.amberBorder }]}>
-            <Text style={[styles.kpiLabel, { color: colors.amberText }]}>Assigned New Jobs</Text>
-            <Text style={[styles.kpiValue, { color: colors.amberText }]}>{pendingCount} Pending</Text>
-            <Text style={styles.kpiSub}>Requires OTP Verification</Text>
-          </View>
-
-          {/* KPI 3 */}
-          <View style={styles.kpiCard}>
-            <Text style={styles.kpiLabel}>Authorized Services</Text>
-            <Text style={styles.kpiValue}>4 Skill Sets</Text>
-            <Text style={styles.kpiSub}>AC & Smart Electrician</Text>
-          </View>
-
-          {/* KPI 4 */}
-          <View style={styles.kpiCard}>
-            <Text style={styles.kpiLabel}>Coverage Zone</Text>
-            <Text style={styles.kpiValue}>Varanasi South</Text>
-            <Text style={styles.kpiSub}>3 Pincodes Active</Text>
-          </View>
-        </View>
-
-        {/* Active Jobs Header */}
-        <View style={styles.sectionRow}>
-          <Text style={styles.sectionHeaderTitle}>Assigned Jobs ({pendingCount})</Text>
-          <TouchableOpacity onPress={() => setActiveTab('bookings')} activeOpacity={0.7}>
-            <Text style={styles.viewAllText}>View All Jobs →</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Jobs Cards List */}
-        {pendingBookings.length === 0 ? (
-          <View style={styles.emptyCard}>
-            <CheckCircle2 size={32} color={colors.emeraldText} />
-            <Text style={styles.emptyTitle}>All Jobs Completed!</Text>
-            <Text style={styles.emptySubtitle}>No pending jobs assigned right now.</Text>
+        {isLoading ? (
+          <View>
+            <ShimmerKpiGrid />
+            <View style={styles.sectionRow}>
+              <ShimmerBox width={160} height={18} borderRadius={6} />
+            </View>
+            <ShimmerJobCard />
+            <ShimmerJobCard />
           </View>
         ) : (
-          pendingBookings.map((job) => (
-            <TouchableOpacity
-              key={job.id}
-              style={styles.jobCard}
-              onPress={() => setSelectedJobForDetails(job)}
-              activeOpacity={0.9}
-            >
-              <View style={styles.jobCardHeader}>
-                <Text style={styles.jobIdText}>#{job.id}</Text>
-                <View
-                  style={[
-                    styles.statusBadge,
-                    job.status === 'Completed'
-                      ? styles.statusCompleted
-                      : styles.statusPending,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.statusText,
-                      job.status === 'Completed'
-                        ? styles.statusTextCompleted
-                        : styles.statusTextPending,
-                    ]}
-                  >
-                    {job.status}
-                  </Text>
-                </View>
+          <AnimatedDataView>
+            <View style={styles.kpiGrid}>
+              {/* KPI 1 */}
+              <View style={[styles.kpiCard, { borderColor: colors.emeraldBorder }]}>
+                <Text style={styles.kpiLabel}>This Month Earnings</Text>
+                <Text style={[styles.kpiValue, { color: colors.emeraldText }]}>₹24,850</Text>
+                <Text style={styles.kpiSub}>75% Net Share Paid Weekly</Text>
               </View>
 
-              <Text style={styles.jobServiceTitle}>{job.serviceTitle}</Text>
-              <Text style={styles.jobCustomerName}>{job.customerName}</Text>
-
-              {/* Address */}
-              <View style={styles.jobMetaRow}>
-                <MapPin size={14} color={colors.rose} />
-                <Text style={styles.jobMetaText} numberOfLines={1}>
-                  {job.locality} • {job.address}
-                </Text>
+              {/* KPI 2 */}
+              <View style={[styles.kpiCard, { borderColor: colors.amberBorder }]}>
+                <Text style={[styles.kpiLabel, { color: colors.amberText }]}>Assigned New Jobs</Text>
+                <Text style={[styles.kpiValue, { color: colors.amberText }]}>{pendingCount} Active</Text>
+                <Text style={styles.kpiSub}>Accept & OTP Verification</Text>
               </View>
 
-              {/* Time Slot */}
-              <View style={styles.jobMetaRow}>
-                <Clock size={14} color={colors.textMuted} />
-                <Text style={styles.jobMetaText}>{job.timeSlot}</Text>
+              {/* KPI 3 */}
+              <View style={styles.kpiCard}>
+                <Text style={styles.kpiLabel}>Authorized Services</Text>
+                <Text style={styles.kpiValue}>4 Skill Sets</Text>
+                <Text style={styles.kpiSub}>AC & Smart Electrician</Text>
               </View>
 
-              {/* Footer Share & Actions */}
-              <View style={styles.jobFooter}>
-                <View>
-                  <Text style={styles.shareLabel}>Your Share (75%)</Text>
-                  <Text style={styles.shareValue}>
-                    ₹{job.partnerEarnings || Math.round(job.totalAmount * 0.75)}
-                  </Text>
-                </View>
-
-                <View style={styles.jobActionsRow}>
-                  {/* Job Details Button */}
-                  <TouchableOpacity
-                    style={styles.detailsIconBtn}
-                    onPress={() => setSelectedJobForDetails(job)}
-                  >
-                    <Eye size={14} color={colors.brand500} />
-                    <Text style={styles.detailsBtnText}>Details</Text>
-                  </TouchableOpacity>
-
-                  {/* Call Customer */}
-                  <TouchableOpacity
-                    style={styles.actionIconBtn}
-                    onPress={() => handleCallCustomer(job.customerPhone)}
-                  >
-                    <Phone size={14} color={colors.brand500} />
-                  </TouchableOpacity>
-
-                  {/* Open Map */}
-                  <TouchableOpacity
-                    style={styles.actionIconBtn}
-                    onPress={() => handleOpenMap(job.address, job.locality)}
-                  >
-                    <Navigation size={14} color={colors.rose} />
-                  </TouchableOpacity>
-
-                  {/* Verify OTP & Finish */}
-                  <TouchableOpacity
-                    style={styles.otpVerifyBtn}
-                    onPress={() => setSelectedBookingForOtp(job)}
-                  >
-                    <KeyRound size={14} color={colors.card} />
-                    <Text style={styles.otpVerifyBtnText}>OTP</Text>
-                  </TouchableOpacity>
-                </View>
+              {/* KPI 4 */}
+              <View style={styles.kpiCard}>
+                <Text style={styles.kpiLabel}>Coverage Zone</Text>
+                <Text style={styles.kpiValue}>Varanasi South</Text>
+                <Text style={styles.kpiSub}>3 Pincodes Active</Text>
               </View>
-            </TouchableOpacity>
-          ))
+            </View>
+
+            {/* Active Jobs Header */}
+            <View style={styles.sectionRow}>
+              <Text style={styles.sectionHeaderTitle}>Assigned Jobs ({pendingCount})</Text>
+              <TouchableOpacity onPress={() => setActiveTab('bookings')} activeOpacity={0.7}>
+                <Text style={styles.viewAllText}>View All Jobs →</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Jobs Cards List */}
+            {activeBookings.length === 0 ? (
+              <View style={styles.emptyCard}>
+                <CheckCircle2 size={32} color={colors.emeraldText} />
+                <Text style={styles.emptyTitle}>All Jobs Completed!</Text>
+                <Text style={styles.emptySubtitle}>No active jobs assigned right now.</Text>
+              </View>
+            ) : (
+              activeBookings.map((job, index) => (
+                <AnimatedDataView key={job.id} delay={index * 80}>
+                  {/* If job is ASSIGNED -> render Accept/Decline Card with live timer */}
+                  {job.status === 'Assigned' ? (
+                    <AssignedJobAcceptCard
+                      booking={job}
+                      onAccept={handleAcceptJob}
+                      onDecline={handleDeclineJob}
+                    />
+                  ) : (
+                    /* Standard Active / Accepted Job Card */
+                    <TouchableOpacity
+                      style={styles.jobCard}
+                      onPress={() => setSelectedJobForDetails(job)}
+                      activeOpacity={0.9}
+                    >
+                      <View style={styles.jobCardHeader}>
+                        <Text style={styles.jobIdText}>#{job.id}</Text>
+                        <View
+                          style={[
+                            styles.statusBadge,
+                            job.status === 'Completed'
+                              ? styles.statusCompleted
+                              : styles.statusPending,
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.statusText,
+                              job.status === 'Completed'
+                                ? styles.statusTextCompleted
+                                : styles.statusTextPending,
+                            ]}
+                          >
+                            {job.status}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <Text style={styles.jobServiceTitle}>{job.serviceTitle}</Text>
+                      <Text style={styles.jobCustomerName}>{job.customerName}</Text>
+
+                      {/* Address */}
+                      <View style={styles.jobMetaRow}>
+                        <MapPin size={14} color={colors.rose} />
+                        <Text style={styles.jobMetaText} numberOfLines={1}>
+                          {job.locality} • {job.address}
+                        </Text>
+                      </View>
+
+                      {/* Time Slot */}
+                      <View style={styles.jobMetaRow}>
+                        <Clock size={14} color={colors.textMuted} />
+                        <Text style={styles.jobMetaText}>{job.timeSlot}</Text>
+                      </View>
+
+                      {/* Footer Share & Actions */}
+                      <View style={styles.jobFooter}>
+                        <View>
+                          <Text style={styles.shareLabel}>Your Share (75%)</Text>
+                          <Text style={styles.shareValue}>
+                            ₹{job.partnerEarnings || Math.round(job.totalAmount * 0.75)}
+                          </Text>
+                        </View>
+
+                        <View style={styles.jobActionsRow}>
+                          {/* Job Details Button */}
+                          <TouchableOpacity
+                            style={styles.detailsIconBtn}
+                            onPress={() => setSelectedJobForDetails(job)}
+                          >
+                            <Eye size={14} color={colors.brand500} />
+                            <Text style={styles.detailsBtnText}>Details</Text>
+                          </TouchableOpacity>
+
+                          {/* Call Customer */}
+                          <TouchableOpacity
+                            style={styles.actionIconBtn}
+                            onPress={() => handleCallCustomer(job.customerPhone)}
+                          >
+                            <Phone size={14} color={colors.brand500} />
+                          </TouchableOpacity>
+
+                          {/* Open Map */}
+                          <TouchableOpacity
+                            style={styles.actionIconBtn}
+                            onPress={() => handleOpenMap(job.address, job.locality)}
+                          >
+                            <Navigation size={14} color={colors.rose} />
+                          </TouchableOpacity>
+
+                          {/* Verify OTP & Finish */}
+                          <TouchableOpacity
+                            style={styles.otpVerifyBtn}
+                            onPress={() => setSelectedBookingForOtp(job)}
+                          >
+                            <KeyRound size={14} color={colors.card} />
+                            <Text style={styles.otpVerifyBtnText}>OTP</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  )}
+                </AnimatedDataView>
+              ))
+            )}
+          </AnimatedDataView>
         )}
 
         {/* OTP & Addons Modal */}

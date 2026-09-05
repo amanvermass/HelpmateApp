@@ -21,11 +21,12 @@ export interface Booking {
   address: string;
   totalAmount: number;
   partnerEarnings: number;
-  status: 'Pending' | 'Assigned' | 'In Progress' | 'Completed' | 'Cancelled';
+  status: 'Pending' | 'Assigned' | 'In Progress' | 'Completed' | 'Cancelled' | 'Declined';
   date: string;
   timeSlot: string;
   otpCode: string;
   isOtpVerified?: boolean;
+  dispatchTimerSeconds?: number;
   completedAddOns?: SelectedAddOnItem[];
   addOnsBaseTotal?: number;
   addOnsGstTotal?: number;
@@ -72,6 +73,22 @@ export const addOnInventory: AddOnItem[] = [
 
 export const initialBookings: Booking[] = [
   {
+    id: 'HM-BKG-2026-901',
+    customerName: 'Karan Malhotra',
+    customerPhone: '+91 97920 11223',
+    serviceTitle: 'Emergency AC Copper Gas Leak Repair & Refill',
+    category: 'AC Repair',
+    locality: 'Sigra Main Road',
+    address: 'B-14, Sigra Main Road, Near Sigra Stadium, Varanasi',
+    totalAmount: 1899,
+    partnerEarnings: 1424,
+    status: 'Assigned',
+    dispatchTimerSeconds: 45,
+    date: 'Today',
+    timeSlot: 'Immediate Dispatch',
+    otpCode: '8821',
+  },
+  {
     id: 'HM-BKG-2026-891',
     customerName: 'Aarav Sharma',
     customerPhone: '+91 98765 43210',
@@ -97,6 +114,7 @@ export const initialBookings: Booking[] = [
     totalAmount: 2499,
     partnerEarnings: 1874,
     status: 'Assigned',
+    dispatchTimerSeconds: 60,
     date: '31 Aug 2026',
     timeSlot: '04:30 PM - 06:30 PM',
     otpCode: '4920',
@@ -153,163 +171,87 @@ export const initialBookings: Booking[] = [
 export const initialPayouts: PayoutRecord[] = [
   {
     id: 'PO-VAR-901',
-    payoutDate: '27 Jul 2026 (Weekly Settlement)',
+    payoutDate: '27 Jul 2026 (Mon)',
     completedJobsCount: 18,
     grossAmount: 16400,
     commissionCut: 4100,
     netPayoutAmount: 12300,
-    bankAccount: 'HDFC Bank (•••• 4910)',
+    bankAccount: 'HDFC Bank Ltd (A/C: •••• 4910)',
     status: 'Settled',
   },
   {
-    id: 'PO-VAR-844',
-    payoutDate: '20 Jul 2026 (Weekly Settlement)',
-    completedJobsCount: 16,
+    id: 'PO-VAR-884',
+    payoutDate: '20 Jul 2026 (Mon)',
+    completedJobsCount: 22,
+    grossAmount: 21800,
+    commissionCut: 5450,
+    netPayoutAmount: 16350,
+    bankAccount: 'HDFC Bank Ltd (A/C: •••• 4910)',
+    status: 'Settled',
+  },
+  {
+    id: 'PO-VAR-871',
+    payoutDate: '13 Jul 2026 (Mon)',
+    completedJobsCount: 15,
     grossAmount: 14200,
     commissionCut: 3550,
     netPayoutAmount: 10650,
-    bankAccount: 'HDFC Bank (•••• 4910)',
-    status: 'Settled',
-  },
-  {
-    id: 'PO-VAR-788',
-    payoutDate: '13 Jul 2026 (Weekly Settlement)',
-    completedJobsCount: 20,
-    grossAmount: 18800,
-    commissionCut: 4700,
-    netPayoutAmount: 14100,
-    bankAccount: 'HDFC Bank (•••• 4910)',
+    bankAccount: 'HDFC Bank Ltd (A/C: •••• 4910)',
     status: 'Settled',
   },
 ];
 
 export const partnerServicesList: PartnerService[] = [
-  {
-    id: 'ps-1',
-    category: 'AC Servicing & Repair',
-    title: 'Power Jet AC Servicing (Split/Window 1.5 Ton)',
-    fixedRate: 699,
-    partnerShare: 524,
-    status: 'Authorized',
-  },
-  {
-    id: 'ps-2',
-    category: 'AC Servicing & Repair',
-    title: 'AC Gas Leakage Repair & Refilling (R32/R410a)',
-    fixedRate: 2499,
-    partnerShare: 1874,
-    status: 'Authorized',
-  },
-  {
-    id: 'ps-3',
-    category: 'AC Servicing & Repair',
-    title: 'AC PCB Circuit Board Diagnostic & Repair',
-    fixedRate: 1499,
-    partnerShare: 1124,
-    status: 'Authorized',
-  },
-  {
-    id: 'ps-4',
-    category: 'AC Servicing & Repair',
-    title: 'Master Deep Foam Jet Wash Cleaning (Split 2 Ton)',
-    fixedRate: 899,
-    partnerShare: 674,
-    status: 'Authorized',
-  },
-  {
-    id: 'ps-5',
-    category: 'AC Servicing & Repair',
-    title: 'Inverter AC Dual Capacitor & Motor Replacement',
-    fixedRate: 450,
-    partnerShare: 338,
-    status: 'Authorized',
-  },
-  {
-    id: 'ps-6',
-    category: 'Smart Home Electrician',
-    title: '3-Phase MCB & Fuse Distribution Repair',
-    fixedRate: 499,
-    partnerShare: 374,
-    status: 'Authorized',
-  },
-  {
-    id: 'ps-7',
-    category: 'Smart Home Electrician',
-    title: 'Smart Home Switchboard & Socket Rewiring',
-    fixedRate: 399,
-    partnerShare: 299,
-    status: 'Authorized',
-  },
+  { id: 'ps-1', category: 'AC Servicing & Repair', title: 'Power Jet Split AC Servicing', fixedRate: 699, partnerShare: 524, status: 'Authorized' },
+  { id: 'ps-2', category: 'AC Servicing & Repair', title: 'Window AC Anti-Bacterial Servicing', fixedRate: 599, partnerShare: 449, status: 'Authorized' },
+  { id: 'ps-3', category: 'AC Servicing & Repair', title: 'AC Gas Refill R32/R410a (Full Pack)', fixedRate: 2499, partnerShare: 1874, status: 'Authorized' },
+  { id: 'ps-4', category: 'AC Servicing & Repair', title: 'AC PCB Board Repair & Fitting', fixedRate: 1499, partnerShare: 1124, status: 'Authorized' },
+  { id: 'ps-5', category: 'Smart Home Electrician', title: '3-Phase Main Switchboard Repair', fixedRate: 499, partnerShare: 374, status: 'Authorized' },
+  { id: 'ps-6', category: 'Smart Home Electrician', title: 'Inverter Wiring & MCB Installation', fixedRate: 799, partnerShare: 599, status: 'Authorized' },
 ];
 
 export const partnerProfileData = {
-  id: 'HM-TECH-901',
-  name: 'Ramesh Kumar Yadav',
+  id: 'VAR-EXPERT-8812',
+  name: 'Ramesh Yadav',
+  phone: '+91 98765 00112',
+  email: 'ramesh.yadav.expert@helpmate.com',
+  role: 'Senior Authorized HVAC & Smart Electrical Expert',
+  rating: '4.92 ★',
+  totalJobs: 148,
+  totalJobsDone: 148,
+  partnerSharePercent: 75,
+  partnerId: 'VAR-EXPERT-8812',
   avatar: 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=300&auto=format&fit=crop&q=80',
-  role: 'Senior AC Servicing & Power-Jet HVAC Specialist',
-  category: 'AC Service & Repair',
-  phone: '+91 98390 11220',
-  rawPhone: '9839011220',
-  email: 'ramesh.yadav@helpmate.in',
-  address: 'H.No 42/B, Sigra-Rathyatra Main Road, Sigra, Varanasi, UP - 221002',
+  address: 'H.No 12/B, Sigra-Rathyatra Main Road, Varanasi - 221002',
   pincodes: ['221001 (Bhelupur)', '221002 (Sigra)', '221005 (Lanka)', '221010 (Mahmoorganj)'],
-  joiningDate: '14 Jan 2025',
-  rating: 4.9,
-  totalJobs: 128,
-  commissionRate: '25%',
-  partnerSharePercent: '75%',
-  status: 'Active & Verified',
-
-  // Bank Account Payout
   bankName: 'HDFC Bank Ltd',
-  branch: 'Sigra Main Branch, Varanasi',
-  accountNumber: '50100299182711',
+  branch: 'Sigra Branch, Varanasi',
+  accountNumber: '•••• •••• 4910',
   ifscCode: 'HDFC0001820',
-  upiId: 'ramesh.yadav@okaxis',
-
-  // Aadhaar KYC Details
-  aadhaarNumber: '9823 4102 9831',
-  aadhaarVerified: true,
-
-  // Emergency Guarantor
-  guarantorName: 'Suresh Chandra Yadav',
-  guarantorRelation: 'Father / Next of Kin',
-  guarantorPhone: '+91 94150 09821',
-
-  // Police Clearance
-  policeStatus: 'Cleared & Approved',
-  policeThana: 'Sigra Police Station (Varanasi Zone)',
-  policeNocNumber: 'UP-VAR-POL-2026-99210',
-
-  // Documents
+  upiId: 'ramesh.yadav@hdfcbank',
+  aadhaarNumber: '•••• •••• 4912',
+  policeThana: 'Sigra Thana, Varanasi',
+  policeNocNumber: 'UP-POL-VAR-2026-9912',
+  guarantorName: 'Vijay Yadav',
+  guarantorRelation: 'Brother',
+  guarantorPhone: '+91 98390 11223',
+  bankDetails: {
+    bankName: 'HDFC Bank Ltd',
+    accountNumber: '50100293844910',
+    ifsc: 'HDFC0001820',
+    branch: 'Sigra Branch, Varanasi',
+  },
+  kycDocs: [
+    { id: 'kyc-1', title: 'Aadhaar Card (Verified)', fileName: 'aadhaar_ramesh_yadav.pdf', type: 'PDF', dateUploaded: '12 Jan 2026', status: 'VERIFIED', url: '#' },
+    { id: 'kyc-2', title: 'PAN Card (Verified)', fileName: 'pan_ramesh_yadav.jpg', type: 'JPG', dateUploaded: '12 Jan 2026', status: 'VERIFIED', url: '#' },
+    { id: 'kyc-3', title: 'HVAC & Electrical Master Certificate', fileName: 'hvac_cert_2025.pdf', type: 'PDF', dateUploaded: '14 Jan 2026', status: 'VERIFIED', url: '#' },
+    { id: 'kyc-4', title: 'Police NOC Character Certificate', fileName: 'police_noc_varanasi.pdf', type: 'PDF', dateUploaded: '15 Jan 2026', status: 'VERIFIED', url: '#' },
+  ] as KycDoc[],
   uploadedDocs: [
-    {
-      id: 'doc-1',
-      title: 'Current Passport Size Photo',
-      fileName: 'Ramesh_Yadav_Passport_Photo.png',
-      type: 'ID Badge Photo',
-      dateUploaded: '14 Jan 2025',
-      status: 'Verified ✓',
-      url: 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=500&auto=format&fit=crop&q=80',
-    },
-    {
-      id: 'doc-2',
-      title: 'Aadhaar Card (Front & Back)',
-      fileName: 'Aadhaar_Both_Sides_Color_Scan.pdf',
-      type: 'Government ID Proof',
-      dateUploaded: '14 Jan 2025',
-      status: 'Verified e-KYC ✓',
-      url: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=500&auto=format&fit=crop&q=80',
-    },
-    {
-      id: 'doc-3',
-      title: 'Police Clearance NOC Certificate',
-      fileName: 'Sigra_Thana_Police_Verification_NOC.pdf',
-      type: 'Background Check',
-      dateUploaded: '12 Jan 2026',
-      status: 'Approved ✓',
-      url: 'https://images.unsplash.com/photo-1450133064473-71024230f91b?w=500&auto=format&fit=crop&q=80',
-    },
+    { id: 'kyc-1', title: 'Aadhaar Card (Verified)', fileName: 'aadhaar_ramesh_yadav.pdf', type: 'PDF', dateUploaded: '12 Jan 2026', status: 'VERIFIED', url: '#' },
+    { id: 'kyc-2', title: 'PAN Card (Verified)', fileName: 'pan_ramesh_yadav.jpg', type: 'JPG', dateUploaded: '12 Jan 2026', status: 'VERIFIED', url: '#' },
+    { id: 'kyc-3', title: 'HVAC & Electrical Master Certificate', fileName: 'hvac_cert_2025.pdf', type: 'PDF', dateUploaded: '14 Jan 2026', status: 'VERIFIED', url: '#' },
+    { id: 'kyc-4', title: 'Police NOC Character Certificate', fileName: 'police_noc_varanasi.pdf', type: 'PDF', dateUploaded: '15 Jan 2026', status: 'VERIFIED', url: '#' },
   ],
 };
 
@@ -318,56 +260,51 @@ export interface AppNotification {
   title: string;
   message: string;
   time: string;
-  category: 'Job' | 'Payout' | 'Rating' | 'System' | 'Bonus';
   read: boolean;
-  targetTab?: 'bookings' | 'payouts' | 'profile' | 'services';
+  type: 'Job' | 'Payout' | 'Rating' | 'Bonus' | 'System';
+  category: 'Job' | 'Payout' | 'Rating' | 'Bonus' | 'System';
+  targetTab?: 'dashboard' | 'bookings' | 'payouts' | 'services' | 'profile';
 }
 
 export const initialNotifications: AppNotification[] = [
   {
-    id: 'notif-1',
-    title: 'New Job Assigned',
-    message: 'Power Jet AC Servicing assigned in Sigra! Customer: Aarav Sharma. Scheduled for 02:00 PM today.',
-    time: '10 mins ago',
-    category: 'Job',
+    id: 'n-1',
+    title: '⚡ New Job Assigned',
+    message: 'Emergency AC Copper Gas Leak Repair assigned in Sigra area. Accept within 45s.',
+    time: '2 mins ago',
     read: false,
-    targetTab: 'bookings',
+    type: 'Job',
+    category: 'Job',
+    targetTab: 'dashboard',
   },
   {
-    id: 'notif-2',
-    title: 'Weekly Payout Transferred',
-    message: 'Weekly net settlement of ₹12,300 has been transferred to your HDFC Bank A/C (••••4910).',
-    time: '2 hours ago',
-    category: 'Payout',
+    id: 'n-2',
+    title: '💰 Weekly Payout Credited!',
+    message: '₹12,300 has been transferred to HDFC Bank A/C •••• 4910 for 18 completed jobs.',
+    time: 'Yesterday',
     read: false,
+    type: 'Payout',
+    category: 'Payout',
     targetTab: 'payouts',
   },
   {
-    id: 'notif-3',
-    title: '5-Star Rating Received ⭐',
-    message: 'Sunil Malhotra rated your electrician repair job 5 stars: "Punctual & excellent service!"',
-    time: 'Yesterday',
-    category: 'Rating',
-    read: true,
-    targetTab: 'profile',
-  },
-  {
-    id: 'notif-4',
-    title: 'Weekly Performance Bonus Alert 🎁',
-    message: 'Complete 5 more AC jet services this week to earn an extra ₹1,500 bonus payout!',
+    id: 'n-3',
+    title: '⭐ 5-Star Customer Rating!',
+    message: 'Customer Aarav Sharma gave you 5 Stars with feedback: "Excellent jet servicing!"',
     time: '2 days ago',
-    category: 'Bonus',
     read: true,
-    targetTab: 'services',
+    type: 'Rating',
+    category: 'Rating',
+    targetTab: 'dashboard',
   },
   {
-    id: 'notif-5',
-    title: 'Police Clearance NOC Verified',
-    message: 'Your Police Clearance NOC status (Sigra Thana) has been verified and active until Jan 2027.',
+    id: 'n-4',
+    title: '🛡️ Police NOC Certificate Verified',
+    message: 'Your Varanasi Police Character NOC has been approved. Account status 100% active.',
     time: '3 days ago',
-    category: 'System',
     read: true,
+    type: 'System',
+    category: 'System',
     targetTab: 'profile',
   },
 ];
-

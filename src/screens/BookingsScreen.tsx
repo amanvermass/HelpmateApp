@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Linking,
+  RefreshControl,
 } from 'react-native';
 import { initialBookings, Booking } from '../data/mockData';
 import { colors, shadow } from '../styles/theme';
@@ -20,15 +21,23 @@ import {
   Eye,
 } from 'lucide-react-native';
 import { OtpAddonModal } from '../components/OtpAddonModal';
-import { JobDetailsModal } from '../components/JobDetailsModal';
-
 import { useAuth } from '../context/AuthContext';
+import { AnimatedDataView } from '../components/AnimatedDataView';
 
 export const BookingsScreen: React.FC = () => {
   const { setSelectedJobForDetails } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>(initialBookings);
   const [filterTab, setFilterTab] = useState<'All' | 'Pending' | 'Assigned' | 'Completed'>('All');
   const [selectedBookingForOtp, setSelectedBookingForOtp] = useState<Booking | null>(null);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => {
+      setBookings(initialBookings);
+      setRefreshing(false);
+    }, 600);
+  }, []);
 
   const filteredBookings = bookings.filter((b) => {
     if (filterTab === 'All') return true;
@@ -86,102 +95,114 @@ export const BookingsScreen: React.FC = () => {
         </ScrollView>
       </View>
 
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[colors.brand500]}
+            tintColor={colors.brand500}
+          />
+        }
+      >
         {filteredBookings.length === 0 ? (
           <View style={styles.emptyCard}>
             <CalendarCheck size={36} color={colors.textMuted} />
             <Text style={styles.emptyTitle}>No jobs found in '{filterTab}' status</Text>
           </View>
         ) : (
-          filteredBookings.map((job) => (
-            <TouchableOpacity
-              key={job.id}
-              style={styles.jobCard}
-              onPress={() => setSelectedJobForDetails(job)}
-              activeOpacity={0.9}
-            >
-              <View style={styles.cardHeader}>
-                <Text style={styles.jobIdText}>#{job.id}</Text>
-                <View
-                  style={[
-                    styles.statusBadge,
-                    job.status === 'Completed' ? styles.statusCompleted : styles.statusPending,
-                  ]}
-                >
-                  <Text
+          filteredBookings.map((job, index) => (
+            <AnimatedDataView key={job.id} delay={index * 60}>
+              <TouchableOpacity
+                style={styles.jobCard}
+                onPress={() => setSelectedJobForDetails(job)}
+                activeOpacity={0.9}
+              >
+                <View style={styles.cardHeader}>
+                  <Text style={styles.jobIdText}>#{job.id}</Text>
+                  <View
                     style={[
-                      styles.statusBadgeText,
-                      job.status === 'Completed'
-                        ? styles.statusBadgeTextCompleted
-                        : styles.statusBadgeTextPending,
+                      styles.statusBadge,
+                      job.status === 'Completed' ? styles.statusCompleted : styles.statusPending,
                     ]}
                   >
-                    {job.status}
-                  </Text>
-                </View>
-              </View>
-
-              <Text style={styles.serviceTitle}>{job.serviceTitle}</Text>
-
-              <View style={styles.customerBox}>
-                <Text style={styles.customerName}>{job.customerName}</Text>
-                <Text style={styles.timeText}>{job.date} • {job.timeSlot}</Text>
-              </View>
-
-              <View style={styles.addressRow}>
-                <MapPin size={14} color={colors.rose} />
-                <Text style={styles.addressText} numberOfLines={1}>
-                  {job.locality} • {job.address}
-                </Text>
-              </View>
-
-              <View style={styles.cardFooter}>
-                <View style={styles.shareCol}>
-                  <Text style={styles.shareLabel}>Net Share (75%)</Text>
-                  <Text style={styles.shareAmount}>
-                    ₹{job.partnerEarnings || Math.round(job.totalAmount * 0.75)}
-                  </Text>
-                </View>
-
-                <View style={styles.actionGroup}>
-                  {/* View Details Button */}
-                  <TouchableOpacity
-                    style={styles.detailsBtn}
-                    onPress={() => setSelectedJobForDetails(job)}
-                  >
-                    <Eye size={14} color={colors.brand500} />
-                    <Text style={styles.detailsBtnText}>Details</Text>
-                  </TouchableOpacity>
-
-                  {/* Call Customer */}
-                  <TouchableOpacity
-                    style={styles.callIconBtn}
-                    onPress={() => handleCallCustomer(job.customerPhone)}
-                  >
-                    <Phone size={14} color={colors.brand500} />
-                  </TouchableOpacity>
-
-                  {/* Open Maps */}
-                  <TouchableOpacity
-                    style={styles.mapIconBtn}
-                    onPress={() => handleOpenMap(job.address, job.locality)}
-                  >
-                    <Navigation size={14} color={colors.rose} />
-                  </TouchableOpacity>
-
-                  {/* Verify OTP */}
-                  {job.status !== 'Completed' && (
-                    <TouchableOpacity
-                      style={styles.otpBtn}
-                      onPress={() => setSelectedBookingForOtp(job)}
+                    <Text
+                      style={[
+                        styles.statusBadgeText,
+                        job.status === 'Completed'
+                          ? styles.statusBadgeTextCompleted
+                          : styles.statusBadgeTextPending,
+                      ]}
                     >
-                      <KeyRound size={14} color={colors.card} />
-                      <Text style={styles.otpBtnText}>OTP</Text>
-                    </TouchableOpacity>
-                  )}
+                      {job.status}
+                    </Text>
+                  </View>
                 </View>
-              </View>
-            </TouchableOpacity>
+
+                <Text style={styles.serviceTitle}>{job.serviceTitle}</Text>
+
+                <View style={styles.customerBox}>
+                  <Text style={styles.customerName}>{job.customerName}</Text>
+                  <Text style={styles.timeText}>{job.date} • {job.timeSlot}</Text>
+                </View>
+
+                <View style={styles.addressRow}>
+                  <MapPin size={14} color={colors.rose} />
+                  <Text style={styles.addressText} numberOfLines={1}>
+                    {job.locality} • {job.address}
+                  </Text>
+                </View>
+
+                <View style={styles.cardFooter}>
+                  <View style={styles.shareCol}>
+                    <Text style={styles.shareLabel}>Net Share (75%)</Text>
+                    <Text style={styles.shareAmount}>
+                      ₹{job.partnerEarnings || Math.round(job.totalAmount * 0.75)}
+                    </Text>
+                  </View>
+
+                  <View style={styles.actionGroup}>
+                    {/* View Details Button */}
+                    <TouchableOpacity
+                      style={styles.detailsBtn}
+                      onPress={() => setSelectedJobForDetails(job)}
+                    >
+                      <Eye size={14} color={colors.brand500} />
+                      <Text style={styles.detailsBtnText}>Details</Text>
+                    </TouchableOpacity>
+
+                    {/* Call Customer */}
+                    <TouchableOpacity
+                      style={styles.callIconBtn}
+                      onPress={() => handleCallCustomer(job.customerPhone)}
+                    >
+                      <Phone size={14} color={colors.brand500} />
+                    </TouchableOpacity>
+
+                    {/* Open Maps */}
+                    <TouchableOpacity
+                      style={styles.mapIconBtn}
+                      onPress={() => handleOpenMap(job.address, job.locality)}
+                    >
+                      <Navigation size={14} color={colors.rose} />
+                    </TouchableOpacity>
+
+                    {/* Verify OTP */}
+                    {job.status !== 'Completed' && (
+                      <TouchableOpacity
+                        style={styles.otpBtn}
+                        onPress={() => setSelectedBookingForOtp(job)}
+                      >
+                        <KeyRound size={14} color={colors.card} />
+                        <Text style={styles.otpBtnText}>OTP</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </View>
+              </TouchableOpacity>
+            </AnimatedDataView>
           ))
         )}
       </ScrollView>

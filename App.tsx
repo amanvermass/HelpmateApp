@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, StatusBar, BackHandler } from 'react-native';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { LoginScreen } from './src/screens/LoginScreen';
@@ -12,11 +12,13 @@ import { JobDetailsScreen } from './src/screens/JobDetailsScreen';
 import { PayoutDetailsScreen } from './src/screens/PayoutDetailsScreen';
 import { NavigationHeader } from './src/components/NavigationHeader';
 import { BottomTabBar } from './src/components/BottomTabBar';
+import { AnimatedSplashScreen } from './src/components/AnimatedSplashScreen';
 import { colors } from './src/styles/theme';
 
 const MainNavigator: React.FC = () => {
   const {
     isAuthenticated,
+    isLoadingSession,
     activeTab,
     setActiveTab,
     selectedJobForDetails,
@@ -62,7 +64,7 @@ const MainNavigator: React.FC = () => {
     setActiveTab,
   ]);
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated && !isLoadingSession) {
     return <LoginScreen />;
   }
 
@@ -116,10 +118,23 @@ const MainNavigator: React.FC = () => {
   );
 };
 
+const AppContent: React.FC = () => {
+  const [showSplash, setShowSplash] = useState<boolean>(true);
+
+  return (
+    <View style={{ flex: 1 }}>
+      <MainNavigator />
+      {showSplash && (
+        <AnimatedSplashScreen onFinish={() => setShowSplash(false)} />
+      )}
+    </View>
+  );
+};
+
 export default function App() {
   return (
     <AuthProvider>
-      <MainNavigator />
+      <AppContent />
     </AuthProvider>
   );
 }

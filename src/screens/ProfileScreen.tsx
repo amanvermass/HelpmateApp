@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   StyleSheet,
   SafeAreaView,
   Platform,
+  RefreshControl,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { partnerProfileData, KycDoc } from '../data/mockData';
@@ -27,8 +28,17 @@ import { DocumentViewerModal } from '../components/DocumentViewerModal';
 
 export const ProfileScreen: React.FC = () => {
   const { logout } = useAuth();
-  const [profile] = useState(partnerProfileData);
+  const [profile, setProfile] = useState(partnerProfileData);
   const [selectedDoc, setSelectedDoc] = useState<KycDoc | null>(null);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => {
+      setProfile(partnerProfileData);
+      setRefreshing(false);
+    }, 600);
+  }, []);
 
   const handleLogoutPress = () => {
     logout();

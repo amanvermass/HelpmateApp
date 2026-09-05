@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   StyleSheet,
   SafeAreaView,
   Platform,
+  RefreshControl,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { colors, shadow } from '../styles/theme';
@@ -35,6 +36,14 @@ export const NotificationsScreen: React.FC = () => {
   } = useAuth();
 
   const [filterTab, setFilterTab] = useState<'All' | 'Unread' | 'Jobs' | 'Payouts'>('All');
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 600);
+  }, []);
 
   const filteredNotifications = notifications.filter((n) => {
     if (filterTab === 'Unread') return !n.read;
@@ -138,7 +147,18 @@ export const NotificationsScreen: React.FC = () => {
       </View>
 
       {/* Notifications Body */}
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[colors.brand500]}
+            tintColor={colors.brand500}
+          />
+        }
+      >
         {filteredNotifications.length === 0 ? (
           <View style={styles.emptyCard}>
             <Bell size={40} color={colors.textMuted} />

@@ -1,21 +1,42 @@
 {
   "expo": {
-    "name": "Helpmate",
+    "name": "HelpMate",
     "slug": "helpmate-partner",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#8D397E"
+    },
     "android": {
       "package": "com.amankvt.helpmate",
+      "versionCode": 1,
+      "icon": "./assets/icon.png",
       "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#8D397E"
+      },
+      "splash": {
+        "image": "./assets/icon.png",
+        "resizeMode": "contain",
         "backgroundColor": "#8D397E"
       }
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.amankvt.helpmate"
+      "bundleIdentifier": "com.amankvt.helpmate",
+      "icon": "./assets/icon.png",
+      "splash": {
+        "image": "./assets/icon.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#8D397E"
+      }
     },
     "web": {
+      "favicon": "./assets/icon.png",
       "bundler": "metro"
     },
     "plugins": [

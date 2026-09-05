@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,15 +7,25 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
+  RefreshControl,
 } from 'react-native';
 import { partnerServicesList, addOnInventory, PartnerService } from '../data/mockData';
 import { colors, shadow } from '../styles/theme';
 import { ShieldCheck, Wrench, Search, Percent, Package, Sparkles } from 'lucide-react-native';
 
 export const ServicesScreen: React.FC = () => {
-  const [services] = useState<PartnerService[]>(partnerServicesList);
+  const [services, setServices] = useState<PartnerService[]>(partnerServicesList);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('All');
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => {
+      setServices(partnerServicesList);
+      setRefreshing(false);
+    }, 600);
+  }, []);
 
   const categories = ['All', 'AC Servicing & Repair', 'Smart Home Electrician', 'Spare Parts'];
 
@@ -74,7 +84,18 @@ export const ServicesScreen: React.FC = () => {
         </ScrollView>
       </View>
 
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[colors.brand500]}
+            tintColor={colors.brand500}
+          />
+        }
+      >
         {/* Policy Box */}
         <View style={styles.policyCard}>
           <View style={styles.policyHeader}>

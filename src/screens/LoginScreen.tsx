@@ -32,9 +32,9 @@ export const LoginScreen: React.FC = () => {
     }
 
     setLoading(true);
-    setTimeout(() => {
+    setTimeout(async () => {
       setLoading(false);
-      const res = login(identifier, password);
+      const res = await login(identifier, password);
       if (!res.success) {
         setErrorMessage(res.error || 'Login failed.');
       }
